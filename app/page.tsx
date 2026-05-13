@@ -1,105 +1,132 @@
-"use client";
+import Link from "next/link";
+import Image from "next/image";
 
-import { useCallback, useMemo, useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { InfoStrip } from "@/components/InfoStrip";
-import { BrandStrip } from "@/components/BrandStrip";
-import { ToastHost, toast } from "@/components/Toast";
-import { PhoneFrame } from "@/components/phone/PhoneFrame";
-import { WhatsAppHeader } from "@/components/phone/WhatsAppHeader";
-import { InputBar } from "@/components/phone/InputBar";
-import { SecondPhone, type SecondPhoneMode } from "@/components/SecondPhone";
-import { SmsPanel, type SmsPanelState } from "@/components/SmsPanel";
-import { FlowContext, type FlowOverlay } from "@/lib/flow-context";
-import type { FlowName } from "@/lib/flow-info";
-import { translate, LANG_NAMES, type Lang, type TKey } from "@/lib/i18n";
-
-import { ConsultFlow } from "@/app/_flows/ConsultFlow";
-import { PhoneBridgeFlow } from "@/app/_flows/PhoneBridgeFlow";
-import { IntakeFlow } from "@/app/_flows/IntakeFlow";
-import { RxFlow } from "@/app/_flows/RxFlow";
-import { AshaFlow } from "@/app/_flows/AshaFlow";
-import { RecordsFlow } from "@/app/_flows/RecordsFlow";
-import { SchemesFlow } from "@/app/_flows/SchemesFlow";
-import { EmergencyFlow } from "@/app/_flows/EmergencyFlow";
-
-const FLOW_COMPONENTS: Record<FlowName, () => React.JSX.Element> = {
-  consult: ConsultFlow,
-  phone: PhoneBridgeFlow,
-  intake: IntakeFlow,
-  rx: RxFlow,
-  asha: AshaFlow,
-  records: RecordsFlow,
-  schemes: SchemesFlow,
-  emergency: EmergencyFlow,
-};
-
-export default function Home() {
-  const [flow, setFlow] = useState<FlowName>("consult");
-  const [headerSub, setHeaderSub] = useState<string>(translate("en", "hdrSub"));
-  const [secondPhone, setSecondPhone] = useState<SecondPhoneMode>({ kind: "hidden" });
-  const [smsPanel, setSmsPanel] = useState<SmsPanelState>({ kind: "hidden" });
-  const [overlay, setOverlay] = useState<FlowOverlay>(null);
-  const [lang, setLang] = useState<Lang>("en");
-
-  const goTo = useCallback((next: FlowName) => {
-    // reset all secondary surfaces on flow switch
-    setSecondPhone({ kind: "hidden" });
-    setSmsPanel({ kind: "hidden" });
-    setOverlay(null);
-    setFlow(next);
-  }, []);
-
-  const handleLangChange = useCallback(
-    (l: Lang) => {
-      setLang(l);
-      toast(`${LANG_NAMES[l]} · re-rendering`);
-      // Force flow remount so new lang strings pick up everywhere.
-      setSecondPhone({ kind: "hidden" });
-      setSmsPanel({ kind: "hidden" });
-      setOverlay(null);
-    },
-    [],
-  );
-
-  const t = useCallback((key: TKey) => translate(lang, key), [lang]);
-
-  const ctx = useMemo(
-    () => ({
-      goTo,
-      setHeaderSub,
-      setSecondPhone,
-      setSmsPanel,
-      setOverlay,
-      lang,
-      t,
-    }),
-    [goTo, lang, t],
-  );
-
-  const FlowComponent = FLOW_COMPONENTS[flow];
-  // Remount the flow tree whenever lang or flow changes so all chat copy is rebuilt.
-  const flowKey = `${flow}-${lang}`;
-
+export default function Landing() {
   return (
-    <FlowContext.Provider value={ctx}>
-      <Sidebar active={flow} onPick={goTo} />
-      <InfoStrip flow={flow} lang={lang} onLangChange={handleLangChange} />
-      <BrandStrip />
+    <main className="landing">
+      <nav className="landing-nav">
+        <div className="landing-nav-brand">
+          <Image src="/logo.png" alt="" width={36} height={36} priority />
+          <span>SakhiCare</span>
+        </div>
+        <div className="landing-nav-links">
+          <a href="https://github.com/whatsupClinic/sakhi-care" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+          <Link href="/demo">Live demo</Link>
+        </div>
+      </nav>
 
-      <div className="sk-stage">
-        <PhoneFrame id="main-phone">
-          <WhatsAppHeader subtitle={headerSub} onBack={() => goTo(flow)} />
-          <FlowComponent key={flowKey} />
-          <InputBar placeholder={t("inputPlaceholder")} />
-          {overlay}
-        </PhoneFrame>
+      <section className="landing-hero">
+        <Image
+          src="/logo.png"
+          alt="SakhiCare logo"
+          width={220}
+          height={220}
+          priority
+          className="landing-logo"
+        />
 
-        <SecondPhone mode={secondPhone} />
-        <SmsPanel state={smsPanel} />
-      </div>
+        <div className="landing-eyebrow">WhatsApp Telemedicine · Rural Women&apos;s Health</div>
 
-      <ToastHost />
-    </FlowContext.Provider>
+        <h1 className="landing-title">
+          A free doctor in <span className="accent">every village</span>,
+          <br />
+          one WhatsApp message away.
+        </h1>
+
+        <p className="landing-tagline">हर सखी की आवाज़ · हर सखी की सेहत</p>
+
+        <p className="landing-blurb">
+          Voice-first triage in Hindi, Marathi, Tamil, and English. ABHA-linked records,
+          ASHA &amp; Anganwadi follow-up, and 13 government schemes — all inside the chat
+          app rural India already uses.
+        </p>
+
+        <Link href="/demo" className="landing-cta">
+          Launch interactive demo
+          <span className="landing-cta-arrow" aria-hidden="true">→</span>
+        </Link>
+
+        <div className="landing-meta">
+          <span className="dot" aria-hidden="true" />
+          8 flows · 4 languages · no signup · ₹0
+        </div>
+
+        <div className="landing-pills">
+          <span className="landing-pill">🤰 <strong>PMMVY</strong> ₹5,000</span>
+          <span className="landing-pill">🛡️ <strong>Ayushman Bharat</strong> ₹5L</span>
+          <span className="landing-pill">🏥 JSY · JSSK · PMSMA · SUMAN</span>
+          <span className="landing-pill">🥬 POSHAN 2.0</span>
+          <span className="landing-pill">💉 UIP / Indradhanush</span>
+          <span className="landing-pill">📞 181 · 108 · 1098</span>
+        </div>
+      </section>
+
+      <section className="landing-features">
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">💬</div>
+          <h3>Voice-first, multilingual</h3>
+          <p>
+            Bhashini ASR captures voice notes in 4 languages. No app to install, no
+            account to make.
+          </p>
+        </article>
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">👩‍⚕️</div>
+          <h3>PHC + e-Rx + ABHA</h3>
+          <p>
+            Routes to PHC doctor in &lt; 6 min. AI-assisted prescriptions via Eka.care.
+            Records auto-saved to ABHA.
+          </p>
+        </article>
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">🤝</div>
+          <h3>ASHA + Anganwadi loop</h3>
+          <p>
+            Real human follow-up. D+1 home visit, D+3 check-in, D+14 nutrition session
+            — coordinated end-to-end.
+          </p>
+        </article>
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">🏛️</div>
+          <h3>Scheme navigator</h3>
+          <p>
+            Auto-matches 13 govt women-and-child schemes from NHM, WCD, MoHFW. ASHA
+            files the paperwork for you.
+          </p>
+        </article>
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">🚨</div>
+          <h3>Emergency parallel dispatch</h3>
+          <p>
+            Red-flag keywords bypass the LLM. Sends 108 + ASHA (0.8 km) + PHC at once.
+            Average response: 8 min.
+          </p>
+        </article>
+        <article className="landing-feature">
+          <div className="landing-feature-ico" aria-hidden="true">☎️</div>
+          <h3>Works on feature phones</h3>
+          <p>
+            IVR helpline at <code>1800-180-1234</code> deflects to WhatsApp via SMS
+            click-to-chat. Nobody left out.
+          </p>
+        </article>
+      </section>
+
+      <footer className="landing-foot">
+        <div>
+          SakhiCare ·{" "}
+          <a
+            href="https://github.com/whatsupClinic/sakhi-care"
+            target="_blank"
+            rel="noreferrer"
+          >
+            github.com/whatsupClinic/sakhi-care
+          </a>
+        </div>
+        <div>Prototype · Not a real medical service · No PHI collected.</div>
+      </footer>
+    </main>
   );
 }
